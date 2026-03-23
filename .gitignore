@@ -1,0 +1,32 @@
+# API keys and secrets
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE / editor
+.claude/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+streamlit.log
+
+# Pipeline output (generated at runtime)
+dashboard/output/
+
+# Legacy files (pre-refactor backups)
+combined_woTextChunking.py
+MIMIC_combined_woTextChunking_SM.py
+MIMIC_multiagents_prompts_SM.py
+multiagents_prompts.py
+FPFN.py
+evaluate.py

@@ -1,0 +1,11 @@
+# Core pipeline
+google-genai>=1.0.0
+openai>=1.0.0
+pandas>=2.0.0
+openpyxl>=3.1.0
+tqdm>=4.60.0
+python-dotenv>=1.0.0
+
+# Dashboard (optional — only needed for streamlit app)
+streamlit>=1.39.0
+plotly>=5.20.0
