@@ -8,7 +8,7 @@ __pycache__/
 *.pyo
 
 # IDE / editor
-.claude/
+.vscode/
 .idea/
 
 # OS
