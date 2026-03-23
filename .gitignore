@@ -9,7 +9,6 @@ __pycache__/
 
 # IDE / editor
 .claude/
-.vscode/
 .idea/
 
 # OS
