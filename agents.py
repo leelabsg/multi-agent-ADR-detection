@@ -623,13 +623,11 @@ class ConfoundersValidation_Agent(BaseAgent):
         ```
         """
 
-        # narrative style: temp=0.0 for openai, temp=0.5 for gemini
-        temperature = 0.5 if self.provider == "gemini" else 0.0
         json_mode = (self.provider == "openai")
 
         return self._call_and_parse_json(
             instruction, task,
-            temperature=temperature, json_mode=json_mode,
+            temperature=0.5, json_mode=json_mode,
             fallback={"checked_results": []},
         )
 
@@ -731,14 +729,8 @@ class ADR_Agent(BaseAgent):
         ```
         """
 
-        # shorthand: temp=0.5 everywhere; narrative: temp=0.0 for openai, 0.5 for gemini
-        if self.note_style == "shorthand":
-            temperature = 0.5
-        else:
-            temperature = 0.5 if self.provider == "gemini" else 0.0
-
         return self._call_and_parse_json(
             instruction, task,
-            temperature=temperature, json_mode=True,
+            temperature=0.5, json_mode=True,
             fallback={"adr_candidates": []},
         )
