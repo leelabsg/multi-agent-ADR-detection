@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite it as below."
+title: "Multi-agent ADR detection"
+type: software
+authors:
+  - family-names: "Kim"
+    given-names: "Soungmun"
+url: "https://github.com/sungmoonie/multi-agent-ADR-detection"
+repository-code: "https://github.com/sungmoonie/multi-agent-ADR-detection"
+version: "1.0.0"
+date-released: 2026-04-15
