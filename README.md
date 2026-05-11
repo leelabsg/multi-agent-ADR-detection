@@ -70,11 +70,19 @@ source venv/bin/activate        # macOS / Linux
 pip install -r requirements.txt
 ```
 
-This installs all required packages including `pandas`, `streamlit`, and others. LLM 호출은 [OpenRouter](https://openrouter.ai/) API를 통해 이루어지며, 기본 모델은 Gemini 3 Flash입니다. 다른 모델을 사용하고 싶을 경우 [OpenRouter Models](https://openrouter.ai/models)에서 모델명을 확인한 뒤 `--model` 옵션으로 지정하면 됩니다.
+This installs all required packages including `pandas`, `streamlit`, and others. All LLM calls are made through the [OpenRouter](https://openrouter.ai/) API, with **Gemini 3 Flash** as the default model. To use a different model, find the model identifier on [OpenRouter Models](https://openrouter.ai/models) and pass it via the `--model` option.
 
 ### 4. Set up your API key
 
-Copy the example file and fill in your key:
+You need an [OpenRouter API key](https://openrouter.ai/keys) to run the pipeline.
+
+**Option A — Enter directly in the dashboard (easiest)**
+
+Simply launch the dashboard (`streamlit run app.py`). The UI provides a built-in API key input where you can paste your key directly — no file setup required. Your key is held in session memory only and is never written to disk.
+
+**Option B — Use a `.env` file**
+
+For the CLI pipeline or to avoid re-entering your key each session, create a `.env` file:
 
 ```bash
 cp .env.example .env
@@ -92,7 +100,7 @@ For the dashboard, also set up its `.env`:
 cp dashboard/.env.example dashboard/.env
 ```
 
-Edit `dashboard/.env` with the same API key.
+The dashboard will automatically detect the key from `.env` and display a confirmation message. You can still override it with a custom key via the UI at any time.
 
 ## Usage
 
