@@ -2,7 +2,7 @@
 ADR Detection Pipeline — unified runner for shorthand and narrative clinical notes.
 
 Usage:
-    # Shorthand style 
+    # Shorthand style
     python pipeline.py data.xlsx --style shorthand --note-col note_preprocessed
 
     # Narrative style (e.g., MIMIC discharge summaries)
@@ -11,8 +11,7 @@ Usage:
 Options:
     --style       shorthand | narrative  (default: shorthand)
     --note-col    Column name containing the clinical note text
-    --provider    openai | gemini  (default: gemini)
-    --model       LLM model name  (default: gemini-3-flash-preview)
+    --model       OpenRouter model name  (default: google/gemini-3-flash-preview)
 """
 
 import time
@@ -29,8 +28,6 @@ from dotenv import load_dotenv
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", message=".*non-text parts.*")
 warnings.filterwarnings("ignore", message=".*thought_signature.*")
-logging.getLogger("google").setLevel(logging.ERROR)
-logging.getLogger("google.genai").setLevel(logging.ERROR)
 pd.options.mode.chained_assignment = None
 
 from agents import (
@@ -95,13 +92,13 @@ def run_adr_detection(df, input_confounder_col, output_col, agent,
 # ============================================================================
 # Main Pipeline
 # ============================================================================
-def process_pipeline(filename, style, note_col, provider, model):
+def process_pipeline(filename, style, note_col, model):
     base_name, ext = os.path.splitext(filename)
     df = pd.read_excel(filename)
     start_time = time.time()
 
     # Shared kwargs for agent construction
-    agent_kwargs = dict(provider=provider, model=model)
+    agent_kwargs = dict(model=model)
 
     # Instantiate agents
     drug_agent = Medications_Agent(**agent_kwargs)
@@ -226,13 +223,8 @@ def main():
              "(default: 'note_preprocessed' for shorthand, 'text' for narrative)",
     )
     parser.add_argument(
-        "--provider", type=str, default="gemini",
-        choices=["openai", "gemini"],
-        help="LLM provider (default: gemini)",
-    )
-    parser.add_argument(
-        "--model", type=str, default="gemini-3-flash-preview",
-        help="LLM model name (default: gemini-3-flash-preview)",
+        "--model", type=str, default="google/gemini-3-flash-preview",
+        help="OpenRouter model name (default: google/gemini-3-flash-preview)",
     )
 
     args = parser.parse_args()
@@ -246,7 +238,6 @@ def main():
         filename=args.filename,
         style=args.style,
         note_col=note_col,
-        provider=args.provider,
         model=args.model,
     )
 

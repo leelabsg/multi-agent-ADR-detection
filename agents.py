@@ -7,7 +7,7 @@ Supports two clinical note styles:
   - "narrative": Full-sentence narrative notes (e.g., MIMIC discharge summaries).
                   Skips Context_Agent; agents work directly on the raw note.
 
-Supports two LLM providers: "openai", "gemini".
+Uses OpenRouter API (OpenAI-compatible) for LLM calls.
 """
 
 import os
@@ -15,8 +15,6 @@ import json
 import re
 import warnings
 
-from google import genai
-from google.genai import types
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -29,21 +27,12 @@ load_dotenv()
 class BaseAgent:
     """Shared initialization, LLM calling, and JSON cleaning logic."""
 
-    SUPPORTED_PROVIDERS = ("openai", "gemini")
-
-    def __init__(self, provider="gemini", model="gemini-3-flash-preview"):
-        self.provider = provider.lower()
+    def __init__(self, model="google/gemini-3-flash-preview"):
         self.model = model
-
-        if self.provider == "openai":
-            self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        elif self.provider == "gemini":
-            self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-        else:
-            raise ValueError(
-                f"Unsupported provider: '{self.provider}'. "
-                f"Choose from {self.SUPPORTED_PROVIDERS}."
-            )
+        self.client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=os.getenv("OPENROUTER_API_KEY"),
+        )
 
     # ----- helpers ----------------------------------------------------------
     @staticmethod
@@ -55,43 +44,33 @@ class BaseAgent:
 
     # ----- core LLM call ----------------------------------------------------
     def _call_llm(self, instruction, messages, temperature=0.0,
-                  json_mode=False, gemini_json_mime=False):
+                  json_mode=False, **_ignored):
         try:
-            if self.provider == "openai":
-                kwargs = dict(
-                    model=self.model,
-                    messages=[
-                        {"role": "system", "content": instruction},
-                        {"role": "user", "content": messages},
-                    ],
-                    temperature=temperature,
-                )
-                if json_mode:
-                    kwargs["response_format"] = {"type": "json_object"}
-                response = self.client.chat.completions.create(**kwargs)
-                return response.choices[0].message.content
-
-            elif self.provider == "gemini":
-                config_kwargs = dict(
-                    system_instruction=instruction,
-                    temperature=temperature,
-                )
-                if gemini_json_mime:
-                    config_kwargs["response_mime_type"] = "application/json"
-                response = self.client.models.generate_content(
-                    model=self.model,
-                    config=types.GenerateContentConfig(**config_kwargs),
-                    contents=messages,
-                )
-                return response.text
+            kwargs = dict(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": instruction},
+                    {"role": "user", "content": messages},
+                ],
+                temperature=temperature,
+                extra_body={
+                    "provider": {
+                        "zdr": True,
+                    },
+                },
+            )
+            if json_mode:
+                kwargs["response_format"] = {"type": "json_object"}
+            response = self.client.chat.completions.create(**kwargs)
+            return response.choices[0].message.content
 
         except Exception as e:
-            print(f"[LLM Error] {self.provider}/{self.model}: {e}")
+            print(f"[LLM Error] {self.model}: {e}")
             raise
 
     def _call_and_parse_json(self, instruction, messages, temperature=0.0,
-                             json_mode=True, gemini_json_mime=False,
-                             fallback=None, max_retries=2):
+                             json_mode=True, fallback=None, max_retries=2,
+                             **_ignored):
         """Call LLM, clean response, parse as JSON.
         Retries on transient errors up to *max_retries* times.
         """
@@ -101,7 +80,7 @@ class BaseAgent:
         for attempt in range(1 + max_retries):
             try:
                 raw = self._call_llm(instruction, messages, temperature,
-                                     json_mode, gemini_json_mime)
+                                     json_mode)
                 cleaned = self._clean_json_string(raw)
                 try:
                     return json.loads(cleaned)
@@ -623,11 +602,9 @@ class ConfoundersValidation_Agent(BaseAgent):
         ```
         """
 
-        json_mode = (self.provider == "openai")
-
         return self._call_and_parse_json(
             instruction, task,
-            temperature=0.5, json_mode=json_mode,
+            temperature=0.5, json_mode=True,
             fallback={"checked_results": []},
         )
 

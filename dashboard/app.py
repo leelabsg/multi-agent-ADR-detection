@@ -10,7 +10,7 @@ import sys
 import pathlib
 from collections import Counter
 
-# ── Auto-load .env file (GEMINI_API_KEY, etc.) ───────────────────────────────
+# ── Auto-load .env file (OPENROUTER_API_KEY, etc.) ───────────────────────────────
 try:
     from dotenv import load_dotenv
     _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
@@ -356,7 +356,7 @@ def _run_pipeline(tmp_rel, log_path, search_dir, proc_env, style="shorthand"):
     """
     import importlib.util as _ilu
     _PKG_MAP = {
-        "google.genai": "google-genai",
+        "openai":       "openai",
         "dotenv":       "python-dotenv",
         "tqdm":         "tqdm",
         "openpyxl":     "openpyxl",
@@ -406,8 +406,7 @@ def _run_pipeline(tmp_rel, log_path, search_dir, proc_env, style="shorthand"):
                 _pipe_proc = subprocess.Popen(
                     [sys.executable, "-u", _pipeline_script, _input_from_root,
                      "--style", style,
-                     "--note-col", "note_preprocessed",
-                     "--provider", "gemini"],
+                     "--note-col", "note_preprocessed"],
                     cwd=_project_root,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
@@ -479,12 +478,12 @@ if page == "Data Upload":
         with st.expander("📋 Input Format Examples — Multiple Notes (CSV/XLSX) & Single Note (Text)", expanded=False):
             _c1, _c2, _c3 = st.columns([1, 3, 1])
             with _c2:
-                st.image(_ex_img_path, use_container_width=True)
+                st.image(_ex_img_path, width='stretch')
 
     _output_dir = os.path.join(search_dir, "output")
     os.makedirs(_output_dir, exist_ok=True)
 
-    # ── Shared Gemini API Key detection (both tabs) ─────────────────────────
+    # ── Shared OpenRouter API Key detection (both tabs) ─────────────────────────
     _secrets_toml_paths = [
         pathlib.Path.home() / ".streamlit" / "secrets.toml",
         pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml",
@@ -492,10 +491,10 @@ if page == "Data Upload":
     _key_from_secrets = ""
     if any(p.exists() for p in _secrets_toml_paths):
         try:
-            _key_from_secrets = st.secrets.get("GEMINI_API_KEY", "")
+            _key_from_secrets = st.secrets.get("OPENROUTER_API_KEY", "")
         except Exception:
             pass
-    _key_from_env = os.environ.get("GEMINI_API_KEY", "")
+    _key_from_env = os.environ.get("OPENROUTER_API_KEY", "")
 
     # ── Tab layout ─────────────────────────────────────────────────────────
     tab_file, tab_text = st.tabs(["📁 File Upload", "📝 Single Note"])
@@ -631,30 +630,30 @@ if page == "Data Upload":
 
             # API Key
             _api_source_f = st.radio(
-                "Gemini API Key",
+                "OpenRouter API Key",
                 ["🔑 Use key from .env (auto)", "✏️ Enter custom key"],
                 horizontal=True, index=0,
                 disabled=has_pipeline_output,
                 key="api_src_file",
                 help=(
-                    "**Use .env (auto)**: Reads `GEMINI_API_KEY` automatically from the `.env` file.  \n"
+                    "**Use .env (auto)**: Reads `OPENROUTER_API_KEY` automatically from the `.env` file.  \n"
                     "**Enter custom key**: Held in session memory only — never written to disk or logs."
                 ),
             )
             if _api_source_f == "🔑 Use key from .env (auto)":
                 _effective_key = _key_from_secrets or _key_from_env
                 if _effective_key:
-                    st.success("✅ Gemini API Key detected automatically "
+                    st.success("✅ OpenRouter API Key detected automatically "
                                "(source: `st.secrets` / `.env` / environment variable).")
                 else:
                     _proj_dir = os.path.dirname(os.path.abspath(__file__))
-                    st.warning(f"⚠️ `GEMINI_API_KEY` not found.  \n"
+                    st.warning(f"⚠️ `OPENROUTER_API_KEY` not found.  \n"
                                f"Create a **`.env`** file in `{_proj_dir}` and add:  \n"
-                               "`GEMINI_API_KEY=your_key_here`")
+                               "`OPENROUTER_API_KEY=your_key_here`")
             else:
                 _effective_key = st.text_input(
-                    "Custom Gemini API Key", type="password",
-                    placeholder="AIza... paste your key here",
+                    "Custom OpenRouter API Key", type="password",
+                    placeholder="sk-or-... paste your key here",
                     disabled=has_pipeline_output, key="api_key_file",
                 )
 
@@ -695,7 +694,7 @@ if page == "Data Upload":
                     _tmp_df.to_excel(_tmp_path, index=False)
 
                     _proc_env                   = os.environ.copy()
-                    _proc_env["GEMINI_API_KEY"] = _effective_key
+                    _proc_env["OPENROUTER_API_KEY"] = _effective_key
 
                     _r = _run_pipeline(_tmp_rel, _log_path, search_dir, _proc_env,
                                        style=note_style)
@@ -727,7 +726,7 @@ if page == "Data Upload":
                                     st.code("\n".join(_r["log_lines"][-60:]), language="")
 
                 if not run_ready and file_cols:
-                    st.caption("⬆️ Enter your Gemini API Key above to enable the pipeline.")
+                    st.caption("⬆️ Enter your OpenRouter API Key above to enable the pipeline.")
 
             # Display: selected file vs currently loaded file
             cur_id_display = st.session_state.get("id_col", "id_note")
@@ -759,7 +758,7 @@ if page == "Data Upload":
 
         # API Key
         _api_source_t = st.radio(
-            "Gemini API Key",
+            "OpenRouter API Key",
             ["🔑 Use key from .env (auto)", "✏️ Enter custom key"],
             horizontal=True, index=0,
             key="api_src_text",
@@ -767,13 +766,13 @@ if page == "Data Upload":
         if _api_source_t == "🔑 Use key from .env (auto)":
             _effective_key_t = _key_from_secrets or _key_from_env
             if _effective_key_t:
-                st.success("✅ Gemini API Key detected automatically.")
+                st.success("✅ OpenRouter API Key detected automatically.")
             else:
-                st.warning("⚠️ `GEMINI_API_KEY` not found in `.env` or environment.")
+                st.warning("⚠️ `OPENROUTER_API_KEY` not found in `.env` or environment.")
         else:
             _effective_key_t = st.text_input(
-                "Custom Gemini API Key", type="password",
-                placeholder="AIza... paste your key here",
+                "Custom OpenRouter API Key", type="password",
+                placeholder="sk-or-... paste your key here",
                 key="api_key_text",
             )
 
@@ -809,7 +808,7 @@ if page == "Data Upload":
                     "id=1 and `note_preprocessed` column assigned automatically.")
 
             _proc_env                   = os.environ.copy()
-            _proc_env["GEMINI_API_KEY"] = _effective_key_t
+            _proc_env["OPENROUTER_API_KEY"] = _effective_key_t
 
             _r = _run_pipeline(_tmp_rel, _log_path, search_dir, _proc_env,
                                style=_note_style_t)
@@ -839,14 +838,14 @@ if page == "Data Upload":
                             st.code("\n".join(_r["log_lines"][-60:]), language="")
 
         if not _text_ready and _note_text.strip():
-            st.caption("⬆️ Enter your Gemini API Key above to enable the pipeline.")
+            st.caption("⬆️ Enter your OpenRouter API Key above to enable the pipeline.")
 
     st.divider()
 
     # ── ③ Current Data Preview ────────────────────────────────────────────────
     st.subheader("③ Current Data Preview")
     st.caption(f"Total: **{len(df):,}** notes  |  Columns: **{len(df.columns)}**")
-    st.dataframe(df.head(10), use_container_width=True, hide_index=True)
+    st.dataframe(df.head(10), width='stretch', hide_index=True)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -891,7 +890,7 @@ This **text-grounded** approach minimises hallucination and supports a
         _img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  "Multi-Agent_Framework.png")
         if os.path.exists(_img_path):
-            st.image(_img_path, use_container_width=True)
+            st.image(_img_path, width='stretch')
         else:
             st.info("📌 Framework diagram not found (`Multi-Agent_Framework.png` "
                     "— place it in the project root folder).")
@@ -970,7 +969,7 @@ ADR determination with full, traceable reasoning.
         )
         fig.update_traces(textinfo="percent+value")
         fig.update_layout(showlegend=True, margin=dict(t=10, b=10, l=10, r=10))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with col2:
         st.subheader("Top 10 Confirmed ADR Drugs")
@@ -1004,7 +1003,7 @@ ADR determination with full, traceable reasoning.
                         color="Count", color_continuous_scale="Blues")
         fig_td.update_layout(yaxis=dict(autorange="reversed"),
                              margin=dict(t=10, b=10, l=10, r=10), coloraxis_showscale=False)
-        st.plotly_chart(fig_td, use_container_width=True)
+        st.plotly_chart(fig_td, width='stretch')
 
     # ── Top 10 Confirmed Drug → Symptom Pairs ─────────────────────────────────
     st.subheader("Top 10 Confirmed Drug → Symptom Pairs")
@@ -1050,7 +1049,7 @@ ADR determination with full, traceable reasoning.
         margin=dict(t=10, b=10, l=10, r=10),
         coloraxis_showscale=False,
     )
-    st.plotly_chart(fig_tp, use_container_width=True)
+    st.plotly_chart(fig_tp, width='stretch')
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -1098,7 +1097,7 @@ elif page == "Note Browser":
 
     st.dataframe(
         tbl,
-        use_container_width=True,
+        width='stretch',
         height=260,
         hide_index=True,
         column_config={
@@ -1143,7 +1142,7 @@ elif page == "Note Browser":
                     pd.DataFrame(meds)[["text", "medication"]].rename(
                         columns={"text": "Raw Text in Note", "medication": "Normalized Drug Name"}
                     ),
-                    use_container_width=True,
+                    width='stretch',
                 )
             else:
                 st.info("No medications extracted from this note.")
@@ -1475,7 +1474,7 @@ elif page == "Drug & ADR Analysis":
                           color="Count", color_continuous_scale="Blues")
         fig_meds.update_layout(yaxis=dict(autorange="reversed"),
                                margin=dict(t=10, b=10, l=10, r=10), coloraxis_showscale=False)
-        st.plotly_chart(fig_meds, use_container_width=True)
+        st.plotly_chart(fig_meds, width='stretch')
 
     with col2:
         st.subheader("Medications in Confirmed ADRs")
@@ -1484,7 +1483,7 @@ elif page == "Drug & ADR Analysis":
                                 color="Count", color_continuous_scale="Oranges")
         fig_conf_drugs.update_layout(yaxis=dict(autorange="reversed"),
                                      margin=dict(t=10, b=10, l=10, r=10), coloraxis_showscale=False)
-        st.plotly_chart(fig_conf_drugs, use_container_width=True)
+        st.plotly_chart(fig_conf_drugs, width='stretch')
 
     # Section 2
     st.divider()
@@ -1526,7 +1525,7 @@ elif page == "Drug & ADR Analysis":
         margin=dict(t=10, b=10, l=10, r=10),
         coloraxis_showscale=False,
     )
-    st.plotly_chart(fig_sym, use_container_width=True)
+    st.plotly_chart(fig_sym, width='stretch')
 
     top_pairs = pd.DataFrame(val_pair_cnts.most_common(top_n_s2), columns=["Pair", "Count"])
     fig_pair = px.bar(top_pairs, x="Count", y="Pair", orientation="h",
@@ -1537,7 +1536,7 @@ elif page == "Drug & ADR Analysis":
         margin=dict(t=40, b=10, l=10, r=10),
         coloraxis_showscale=False,
     )
-    st.plotly_chart(fig_pair, use_container_width=True)
+    st.plotly_chart(fig_pair, width='stretch')
 
     # ══════════════════════════════════════════════════════════════════════════
     # Section 3 – Drug Detail View
@@ -1603,11 +1602,11 @@ elif page == "Drug & ADR Analysis":
                         margin=dict(t=10, b=10, l=10, r=10),
                         coloraxis_showscale=False,
                     )
-                    st.plotly_chart(_fig_c, use_container_width=True)
+                    st.plotly_chart(_fig_c, width='stretch')
 
                 st.dataframe(
                     pd.DataFrame(_cands),
-                    use_container_width=True,
+                    width='stretch',
                     hide_index=True,
                     column_config={
                         "Note ID":     st.column_config.TextColumn("Note ID",     width="small"),
@@ -1645,11 +1644,11 @@ elif page == "Drug & ADR Analysis":
                         margin=dict(t=10, b=10, l=10, r=10),
                         coloraxis_showscale=False,
                     )
-                    st.plotly_chart(_fig_v, use_container_width=True)
+                    st.plotly_chart(_fig_v, width='stretch')
 
                 st.dataframe(
                     pd.DataFrame(_confs),
-                    use_container_width=True,
+                    width='stretch',
                     hide_index=True,
                     column_config={
                         "Note ID":     st.column_config.TextColumn("Note ID",     width="small"),

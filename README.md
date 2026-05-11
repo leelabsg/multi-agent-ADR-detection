@@ -47,7 +47,7 @@ multi-agent-ADR-detection/
 ### Prerequisites
 
 - Python 3.10 or higher
-- A Gemini API key ([Google AI Studio](https://aistudio.google.com/apikey)) or an OpenAI API key
+- An OpenRouter API key ([OpenRouter](https://openrouter.ai/keys))
 
 ### 1. Clone the repository
 
@@ -70,7 +70,7 @@ source venv/bin/activate        # macOS / Linux
 pip install -r requirements.txt
 ```
 
-This installs all required packages including `google-genai`, `openai`, `pandas`, `streamlit`, and others.
+This installs all required packages including `pandas`, `streamlit`, and others. LLM 호출은 [OpenRouter](https://openrouter.ai/) API를 통해 이루어지며, 기본 모델은 Gemini 3 Flash입니다. 다른 모델을 사용하고 싶을 경우 [OpenRouter Models](https://openrouter.ai/models)에서 모델명을 확인한 뒤 `--model` 옵션으로 지정하면 됩니다.
 
 ### 4. Set up your API key
 
@@ -83,10 +83,8 @@ cp .env.example .env
 Edit `.env`:
 
 ```
-GEMINI_API_KEY=your_gemini_api_key_here
+OPENROUTER_API_KEY=your_openrouter_api_key_here
 ```
-
-> If using OpenAI models, add `OPENAI_API_KEY=your_openai_api_key_here` to the same file.
 
 For the dashboard, also set up its `.env`:
 
@@ -109,8 +107,8 @@ python pipeline.py data.xlsx --style shorthand --note-col note_preprocessed
 # Narrative style
 python pipeline.py data.xlsx --style narrative --note-col text
 
-# With OpenAI instead of Gemini
-python pipeline.py data.xlsx --style narrative --note-col text --provider openai --model gpt-4o
+# With a different model (via OpenRouter)
+python pipeline.py data.xlsx --style narrative --note-col text --model anthropic/claude-sonnet-4
 ```
 
 **Quick test with sample data:**
@@ -126,8 +124,7 @@ python pipeline.py note_sample.xlsx --style shorthand --note-col note_preprocess
 | `filename` | *(required)* | Input Excel file (.xlsx) |
 | `--style` | `shorthand` | `shorthand` or `narrative` |
 | `--note-col` | auto | Column containing note text (`note_preprocessed` for shorthand, `text` for narrative) |
-| `--provider` | `gemini` | `openai` or `gemini` |
-| `--model` | `gemini-3-flash-preview` | LLM model name |
+| `--model` | `google/gemini-3-flash-preview` | OpenRouter model name |
 
 **Output:** `<input_name>_results.xlsx` — a single file containing all intermediate and final columns.
 
